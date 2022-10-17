@@ -1,0 +1,48 @@
+import cv2
+import mediapipe as mp
+
+
+class hand_detector():
+    def __init__(self, mode=False, maxhands=2,modelcomp = 1, detectionCon= 0.5, trackCon= 0.5):
+
+        self.mode = mode 
+        self.maxhands = maxhands
+        self.modelcomp = modelcomp
+        self.detectionCon = detectionCon 
+        self.trackCon = trackCon
+
+        self.mphands = mp.solutions.hands
+
+        self.hands = self.mphands.Hands(self.mode,self.maxhands,self.modelcomp,self.detectionCon,self.trackCon)
+        self.mpDraw = mp.solutions.drawing_utils
+
+    def findHands(self,img,draw = True):
+        imgrgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+        self.results = self.hands.process(imgrgb)
+
+        if self.results.multi_hand_landmarks != None:
+            for hnds in self.results.multi_hand_landmarks:
+                if draw:
+                    self.mpDraw.draw_landmarks(img, hnds, self.mphands.HAND_CONNECTIONS)
+        return img
+
+    def findPosition(self,img,handNo=0,draw=True):
+        lm_list = []
+        if self.results.multi_hand_landmarks:
+            myHand = self.results.multi_hand_landmarks[handNo]
+
+            for id,lm in enumerate(myHand.landmark):
+                h,w,c = img.shape
+                cx,cy = int(lm.x * h), int(lm.y * w)
+                lm_list.append([id,cx,cy])
+                if draw:
+                    cv2.circle(img,(cx,cy),15,(255,0,255),cv2.FILLED)
+
+        return lm_list
+
+
+
+
+if __name__ == "__main__":
+    main()
